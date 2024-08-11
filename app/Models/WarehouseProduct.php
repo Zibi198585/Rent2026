@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class WarehouseProduct extends Model
 {
@@ -15,7 +16,6 @@ class WarehouseProduct extends Model
         'warehouse_id',
         'product_id',
         'quantity',
-        'status',
     ];
 
     public function warehouse()
@@ -27,4 +27,26 @@ class WarehouseProduct extends Model
     {
         return $this->belongsTo(Product::class);
     }
+
+    public static function updateStock(WarehouseMovement $movement)
+    {
+        Log::info('Updating stock for movement ID: ' . $movement->id);
+
+        $warehouseProduct = self::firstOrNew([
+            'warehouse_id' => $movement->warehouse_id,
+            'product_id' => $movement->product_id,
+        ]);
+
+        if ($movement->type === 'inbound') {
+            $warehouseProduct->quantity += $movement->quantity;
+        } elseif ($movement->type === 'outbound' || $movement->type === 'return') {
+            $warehouseProduct->quantity -= $movement->quantity;
+        }
+
+        $warehouseProduct->save();
+
+        Log::info('Updated stock for product ID: ' . $movement->product_id . ' in warehouse ID: ' . $movement->warehouse_id);
+    }
+
+
 }

@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('expense_types', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->boolean('affects_inventory')->default(false); // Nowe pole, które określa, czy wydatek ma wpływ na magazyn
             $table->timestamps();
         });
     }
